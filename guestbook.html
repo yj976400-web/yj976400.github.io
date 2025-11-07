@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>방명록</title>
+  <style>
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input, textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    textarea {
+      resize: none;
+      height: 80px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .messages {
+      margin-top: 25px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .msg {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    }
+
+    .msg strong {
+      color: #0078D7;
+    }
+
+    .empty {
+      color: #777;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>📖 방명록</h1>
+
+  <form id="guestForm">
+    <input type="text" id="name" placeholder="이름을 입력하세요" required />
+    <textarea id="message" placeholder="메시지를 입력하세요" required></textarea>
+    <button type="submit">등록하기</button>
+  </form>
+
+  <div class="messages" id="messages">
+    <p class="empty">아직 방명록이 없습니다.</p>
+  </div>
+
+  <script>
+    const form = document.getElementById('guestForm');
+    const messagesDiv = document.getElementById('messages');
+    const storedMessages = JSON.parse(localStorage.getItem('guestbook') || '[]');
+
+    function renderMessages() {
+      messagesDiv.innerHTML = storedMessages.length === 0
+        ? '<p class="empty">아직 방명록이 없습니다.</p>'
+        : storedMessages.map(msg => `
+          <div class="msg">
+            <strong>${msg.name}</strong><br>
+            ${msg.text}
+          </div>
+        `).join('');
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const text = document.getElementById('message').value.trim();
+
+      if (!name || !text) return alert('이름과 메시지를 모두 입력하세요.');
+
+      storedMessages.unshift({ name, text });
+      localStorage.setItem('guestbook', JSON.stringify(storedMessages));
+      renderMessages();
+
+      form.reset();
+    });
+
+    renderMessages();
+  </script>
+</body>
+</html>
