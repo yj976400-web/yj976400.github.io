@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>게시판</title>
+  <style>
+    body { font-family: "Noto Sans KR", sans-serif; background:#f5f6fa; padding:20px; }
+    .post { background:white; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow:0 1px 6px rgba(0,0,0,0.1); }
+    .title { font-weight:bold; font-size:18px; color:#333; cursor:pointer; }
+    textarea, input { width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px solid #ccc; }
+    button { margin-top:10px; background:#2196F3; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; }
+    button:hover { background:#1976D2; }
+  </style>
+</head>
+<body>
+  <h1>게시판</h1>
+  <button onclick="logout()">로그아웃</button>
+  <div>
+    <input type="text" id="title" placeholder="제목 입력">
+    <textarea id="content" placeholder="내용 입력"></textarea>
+    <button onclick="writePost()">글쓰기</button>
+  </div>
+  <h2>전체 글</h2>
+  <div id="posts"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD86lAW_fIIqWBqJGjkc3SeAVeqiqzLUh8",
+      authDomain: "mini-naver-zicik-in.firebaseapp.com",
+      projectId: "mini-naver-zicik-in",
+      storageBucket: "mini-naver-zicik-in.firebasestorage.app",
+      messagingSenderId: "1052418314129",
+      appId: "1:1052418314129:web:2bfe4c87202455796f9430",
+      measurementId: "G-WGRKZN1NSL",
+      databaseURL: "https://mini-naver-zicik-in-default-rtdb.firebaseio.com"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const user = localStorage.getItem("user");
+    if(!user) location.href = "index.html";
+
+    function logout(){
+      localStorage.removeItem("user");
+      location.href = "index.html";
+    }
+
+    async function writePost(){
+      const title = document.getElementById("title").value.trim();
+      const content = document.getElementById("content").value.trim();
+      if(!title || !content) return alert("빈칸을 채워주세요!");
+
+      const newRef = push(ref(db, "posts"));
+      await set(newRef, { title, content, author:user, time: new Date().toLocaleString() });
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      alert("작성 완료!");
+    }
+
+    const postsDiv = document.getElementById("posts");
+    onValue(ref(db, "posts"), (snapshot)=>{
+      const data = snapshot.val();
+      postsDiv.innerHTML = "";
+      for(let key in data){
+        const p = data[key];
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `<div class="title" onclick="openPost('${key}')">${p.title}</div>
+                         <div>${p.author} · ${p.time}</div>`;
+        postsDiv.appendChild(div);
+      }
+    });
+
+    window.openPost = function(key){
+      localStorage.setItem("currentPost", key);
+      location.href = "post.html";
+    };
+  </script>
+</body>
+</html>
