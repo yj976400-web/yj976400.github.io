@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>게시글 보기</title>
+  <style>
+    body { font-family:"Noto Sans KR", sans-serif; background:#f5f6fa; padding:20px; }
+    .card { background:white; border-radius:12px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,0.1); margin-bottom:20px; }
+    textarea { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; }
+    button { background:#4CAF50; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; margin-top:10px; }
+    button:hover { background:#45a049; }
+  </style>
+</head>
+<body>
+  <button onclick="back()">← 목록으로</button>
+  <div id="post"></div>
+  <div class="card">
+    <h3>댓글 달기</h3>
+    <textarea id="comment"></textarea>
+    <button onclick="addComment()">등록</button>
+  </div>
+  <h3>댓글 목록</h3>
+  <div id="comments"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, get, onValue, push, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD86lAW_fIIqWBqJGjkc3SeAVeqiqzLUh8",
+      authDomain: "mini-naver-zicik-in.firebaseapp.com",
+      projectId: "mini-naver-zicik-in",
+      storageBucket: "mini-naver-zicik-in.firebasestorage.app",
+      messagingSenderId: "1052418314129",
+      appId: "1:1052418314129:web:2bfe4c87202455796f9430",
+      measurementId: "G-WGRKZN1NSL",
+      databaseURL: "https://mini-naver-zicik-in-default-rtdb.firebaseio.com"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const user = localStorage.getItem("user");
+    const postKey = localStorage.getItem("currentPost");
+    if(!user || !postKey) location.href = "index.html";
+
+    async function loadPost(){
+      const snap = await get(ref(db, "posts/" + postKey));
+      if(!snap.exists()) return alert("삭제된 글입니다.");
+      const p = snap.val();
+      post.innerHTML = `<div class="card"><h2>${p.title}</h2><p>${p.content}</p><p>${p.author} · ${p.time}</p></div>`;
+    }
+
+    function addComment(){
+      const text = comment.value.trim();
+      if(!text) return alert("댓글을 입력하세요!");
+      const newRef = push(ref(db, `comments/${postKey}`));
+      set(newRef, { text, author:user, time:new Date().toLocaleString() });
+      comment.value = "";
+    }
+
+    onValue(ref(db, `comments/${postKey}`), snap=>{
+      const data = snap.val();
+      comments.innerHTML = "";
+      for(let key in data){
+        const c = data[key];
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `<b>${c.author}</b> · ${c.time}<br>${c.text}`;
+        comments.appendChild(div);
+      }
+    });
+
+    function back(){
+      location.href = "board.html";
+    }
+
+    loadPost();
+  </script>
+</body>
+</html>
