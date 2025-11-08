@@ -24,7 +24,6 @@
     input { width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
     button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 8px; background: #4CAF50; color: white; font-size: 15px; cursor: pointer; }
     button:hover { background: #45a049; }
-    p { font-size: 13px; color: #777; }
   </style>
 </head>
 <body>
@@ -34,12 +33,11 @@
     <input type="password" id="pw" placeholder="비밀번호" />
     <button onclick="login()">로그인</button>
     <button onclick="register()">회원가입</button>
-    <p>관리자 계정: admin / 1234</p>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD86lAW_fIIqWBqJGjkc3SeAVeqiqzLUh8",
@@ -47,45 +45,4 @@
       projectId: "mini-naver-zicik-in",
       storageBucket: "mini-naver-zicik-in.firebasestorage.app",
       messagingSenderId: "1052418314129",
-      appId: "1:1052418314129:web:2bfe4c87202455796f9430",
-      measurementId: "G-WGRKZN1NSL",
-      databaseURL: "https://mini-naver-zicik-in-default-rtdb.firebaseio.com"
-    };
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // 로그인
-    async function login() {
-      const id = idInput.value.trim();
-      const pw = pwInput.value.trim();
-      if(!id || !pw) return alert("아이디와 비밀번호를 입력하세요!");
-
-      const snapshot = await get(child(ref(db), "users/" + id));
-      if(snapshot.exists() && snapshot.val().pw === pw){
-        localStorage.setItem("user", id);
-        alert("로그인 성공!");
-        location.href = "board.html";
-      } else {
-        alert("아이디 또는 비밀번호가 잘못되었습니다.");
-      }
-    }
-
-    // 회원가입
-    async function register() {
-      const id = idInput.value.trim();
-      const pw = pwInput.value.trim();
-      if(!id || !pw) return alert("빈칸을 채워주세요!");
-
-      const userRef = child(ref(db), "users/" + id);
-      const snapshot = await get(userRef);
-      if(snapshot.exists()) return alert("이미 존재하는 아이디입니다!");
-
-      await set(userRef, { id, pw, role: id === "admin" ? "admin" : "user" });
-      alert("회원가입 완료!");
-    }
-
-    const idInput = document.getElementById("id");
-    const pwInput = document.getElementById("pw");
-  </script>
-</body>
-</html>
+      appId
