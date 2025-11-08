@@ -1,43 +1,91 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>로그인</title>
-<style>
-body {background:#f4f6f9;font-family:'Noto Sans KR',sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;}
-.login-box{background:white;padding:30px;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.1);width:320px;text-align:center;}
-input{width:100%;margin:10px 0;padding:10px;border-radius:8px;border:1px solid #ccc;outline:none;}
-button{width:100%;padding:10px;border:none;border-radius:8px;background:#4CAF50;color:white;font-size:16px;cursor:pointer;}
-button:hover{background:#45a049;}
-a{font-size:14px;color:#555;text-decoration:none;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인</title>
+  <style>
+    body {
+      font-family: "Noto Sans KR", sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 320px;
+      text-align: center;
+    }
+    input { width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+    button { width: 100%; margin-top: 10px; padding: 10px; border: none; border-radius: 8px; background: #4CAF50; color: white; font-size: 15px; cursor: pointer; }
+    button:hover { background: #45a049; }
+    p { font-size: 13px; color: #777; }
+  </style>
 </head>
 <body>
-<div class="login-box">
-  <h2>🔐 로그인</h2>
-  <input type="text" id="username" placeholder="아이디" required>
-  <input type="password" id="password" placeholder="비밀번호" required>
-  <button onclick="login()">로그인</button>
-  <p><a href="signup.html">회원가입</a></p>
-</div>
+  <div class="box">
+    <h2>로그인</h2>
+    <input type="text" id="id" placeholder="아이디" />
+    <input type="password" id="pw" placeholder="비밀번호" />
+    <button onclick="login()">로그인</button>
+    <button onclick="register()">회원가입</button>
+    <p>관리자 계정: admin / 1234</p>
+  </div>
 
-<script>
-  // 회원 정보 로드
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-  function login() {
-    const id = username.value.trim();
-    const pw = password.value.trim();
-    const user = users.find(u => u.id === id && u.password === pw);
-    if (!user) return alert("아이디 또는 비밀번호가 잘못되었습니다!");
+    const firebaseConfig = {
+      apiKey: "AIzaSyD86lAW_fIIqWBqJGjkc3SeAVeqiqzLUh8",
+      authDomain: "mini-naver-zicik-in.firebaseapp.com",
+      projectId: "mini-naver-zicik-in",
+      storageBucket: "mini-naver-zicik-in.firebasestorage.app",
+      messagingSenderId: "1052418314129",
+      appId: "1:1052418314129:web:2bfe4c87202455796f9430",
+      measurementId: "G-WGRKZN1NSL",
+      databaseURL: "https://mini-naver-zicik-in-default-rtdb.firebaseio.com"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-    alert("로그인 성공!");
+    // 로그인
+    async function login() {
+      const id = idInput.value.trim();
+      const pw = pwInput.value.trim();
+      if(!id || !pw) return alert("아이디와 비밀번호를 입력하세요!");
 
-    if (user.role === "admin") location.href = "admin.html";
-    else location.href = "guestbook.html";
-  }
-</script>
+      const snapshot = await get(child(ref(db), "users/" + id));
+      if(snapshot.exists() && snapshot.val().pw === pw){
+        localStorage.setItem("user", id);
+        alert("로그인 성공!");
+        location.href = "board.html";
+      } else {
+        alert("아이디 또는 비밀번호가 잘못되었습니다.");
+      }
+    }
+
+    // 회원가입
+    async function register() {
+      const id = idInput.value.trim();
+      const pw = pwInput.value.trim();
+      if(!id || !pw) return alert("빈칸을 채워주세요!");
+
+      const userRef = child(ref(db), "users/" + id);
+      const snapshot = await get(userRef);
+      if(snapshot.exists()) return alert("이미 존재하는 아이디입니다!");
+
+      await set(userRef, { id, pw, role: id === "admin" ? "admin" : "user" });
+      alert("회원가입 완료!");
+    }
+
+    const idInput = document.getElementById("id");
+    const pwInput = document.getElementById("pw");
+  </script>
 </body>
 </html>
