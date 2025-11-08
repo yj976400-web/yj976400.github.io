@@ -35,14 +35,60 @@
     <button onclick="register()">회원가입</button>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+  <!-- ✅ Firebase CDN 버전 -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
 
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyD86lAW_fIIqWBqJGjkc3SeAVeqiqzLUh8",
       authDomain: "mini-naver-zicik-in.firebaseapp.com",
       projectId: "mini-naver-zicik-in",
       storageBucket: "mini-naver-zicik-in.firebasestorage.app",
       messagingSenderId: "1052418314129",
-      appId
+      appId: "1:1052418314129:web:2bfe4c87202455796f9430",
+      measurementId: "G-WGRKZN1NSL",
+      databaseURL: "https://mini-naver-zicik-in-default-rtdb.firebaseio.com/"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function register() {
+      const id = document.getElementById("id").value.trim();
+      const pw = document.getElementById("pw").value.trim();
+      if (!id || !pw) return alert("빈칸을 채워주세요!");
+
+      const userRef = db.ref("users/" + id);
+      const snapshot = await userRef.get();
+
+      if (snapshot.exists()) return alert("이미 존재하는 아이디입니다!");
+
+      await userRef.set({
+        id: id,
+        pw: pw,
+        role: id === "admin" ? "admin" : "user"
+      });
+
+      alert("회원가입 완료!");
+    }
+
+    async function login() {
+      const id = document.getElementById("id").value.trim();
+      const pw = document.getElementById("pw").value.trim();
+      if (!id || !pw) return alert("아이디와 비밀번호를 입력하세요!");
+
+      const userRef = db.ref("users/" + id);
+      const snapshot = await userRef.get();
+
+      if (snapshot.exists() && snapshot.val().pw === pw) {
+        localStorage.setItem("user", id);
+        alert("로그인 성공!");
+        location.href = "board.html";
+      } else {
+        alert("아이디 또는 비밀번호가 잘못되었습니다.");
+      }
+    }
+  </script>
+</body>
+</html>
